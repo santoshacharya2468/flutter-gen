@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 #[derive(Debug,Parser)]
 pub struct  GenArgs {
     #[clap(subcommand)]
@@ -13,13 +13,15 @@ pub enum Command{
 }
 #[derive(Debug,Subcommand)]
 pub enum CreateCommand{
-   Module{
-     name:String
-   },
-   Bloc{
-    name:String
-   },
-   Repository{
-    name:String
-   }
+   Module(CreateArgs),
+   Bloc(CreateArgs),
+   Repository(CreateArgs)
+}
+#[derive(Debug,Args)]
+pub struct  CreateArgs{
+  pub name:String,
+  #[clap(long)]
+  pub req:Option<String>,
+  #[clap(long)]
+  pub res:Option<String>
 }

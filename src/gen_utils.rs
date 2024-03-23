@@ -1,5 +1,8 @@
-use std::{collections::HashMap, fs};
-pub fn create_bloc(name:String){
+use std::{collections::HashMap, fs, io::Write};
+use serde_json::Value;
+use crate::{gen_command::CreateArgs, req_res:: serde_value_to_dart_class};
+pub fn create_bloc(args:&CreateArgs){
+    let name =&args.name;
     let base_dir=format!("lib/features/{name}/presentation");
     let bloc_dir=format!("{base_dir}/bloc");
     let widget_dir=format!("{base_dir}/widget");
@@ -15,19 +18,39 @@ pub fn create_bloc(name:String){
      for (key,value) in folder_files{
         for file in value{
             let full_path=format!("{key}/{file}");
-            create_file(full_path)
+            create_file(full_path,args);
         }
      }
 }
 pub fn create_folder(path:String){
     fs::create_dir(path).unwrap();
 }
-pub fn create_file(file:String){
+pub fn create_file(file:String,args:&CreateArgs){
     let file_type=file.split("_").last().unwrap();
-    println!("Creating file of type {file_type}");
-    fs::File::create(file.as_str()).unwrap();
+    let mut file_content="//auto generated\n".to_string();
+    match  file_type {
+        "response.dart"=>{
+            if args.res.is_some(){
+                let value:&Value=&serde_json::from_str(args.res.as_ref().unwrap().as_str()).unwrap();
+               file_content=serde_value_to_dart_class(value.as_object().unwrap(), format!("{}Response",args.name).as_str());
+            }
+        },
+        "request.dart"=>{
+            if args.req.is_some(){
+                let value:&Value=&serde_json::from_str(args.req.as_ref().unwrap().as_str()).unwrap();
+               file_content=serde_value_to_dart_class(value.as_object().unwrap(), format!("{}Request",args.name).as_str());
+            }
+        },
+        "repository.dart"=>{
+           
+        }
+        _=>{}
+    }
+    let mut  file=fs::File::create(file.as_str()).unwrap();
+    let _=file.write(file_content.as_bytes());
 }
-pub fn create_repository(name:String){
+pub fn create_repository(args:&CreateArgs){
+    let name =&args.name;
     let base_dir=format!("lib/features/{name}/data");
     let repo_dir= format!("{base_dir}/repository");
     let model_dir=format!("{base_dir}/model",);
@@ -44,16 +67,18 @@ pub fn create_repository(name:String){
      for (key,value) in folder_files{
         for file in value{
             let full_path=format!("{key}/{file}");
-            create_file(full_path)
+            create_file(full_path,args);
         }
      }
 }
 pub fn create_module_dir(name:String){
      fs::create_dir_all(format!("lib/features/{name}")).unwrap();
 }
-pub fn create_module(name:String){
-  create_module_dir(name.clone());
-   create_bloc(name.clone());
-   create_repository(name);
+pub fn create_module(args:CreateArgs){
+    let arg=&args;
+    let name=&arg.name;
+   create_module_dir(name.to_string());
+   create_bloc(&arg);
+   create_repository(&arg);
 
 }

@@ -1,5 +1,6 @@
 mod gen_utils;
 mod gen_command;
+mod req_res;
 use gen_command::{Command,CreateCommand,GenArgs};
 use clap::Parser;
 fn main() {
@@ -7,14 +8,14 @@ fn main() {
     match  args.command {
         Command::Create(create)=>{
             match  create {
-                 CreateCommand::Module { name }=>{
-                   gen_utils:: create_module(name);
+                 CreateCommand::Module(args)=>{
+                   gen_utils:: create_module(args);
                  },
-                 CreateCommand::Bloc { name }=>{
-                   gen_utils:: create_bloc(name)
+                 CreateCommand::Bloc(args)=>{
+                   gen_utils:: create_bloc(&args)
                  },
-                 CreateCommand::Repository { name }=>{
-                   gen_utils:: create_repository(name)
+                 CreateCommand::Repository(args)=>{
+                   gen_utils:: create_repository(&args)
                  }
             }
         },
